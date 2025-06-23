@@ -341,55 +341,145 @@ class FingerprintRecognitionSystem:
         return train_losses, val_losses
     
     def evaluate_performance(self, train_dataset, test_dataset, num_trials=1000):
-        """Evaluate system performance using both train and test datasets"""
-        print("Evaluating Performance...")
+        """Evaluate the performance of the trained model using proper train/test separation"""
+        print("=== Evaluating Performance ===")
         
         self.model.eval()
         
-        # Generate genuine and impostor scores
+        # Get all training and test data
+        train_images = []
+        train_labels = []
+        test_images = []
+        test_labels = []
+        
+        for i in range(len(train_dataset)):
+            image, label = train_dataset[i]
+            train_images.append(image.unsqueeze(0).to(device))
+            # Convert numpy array to scalar if needed
+            if isinstance(label, np.ndarray):
+                label = label.item() if label.size == 1 else int(label[0])
+            train_labels.append(label)
+        
+        for i in range(len(test_dataset)):
+            image, label = test_dataset[i]
+            test_images.append(image.unsqueeze(0).to(device))
+            # Convert numpy array to scalar if needed
+            if isinstance(label, np.ndarray):
+                label = label.item() if label.size == 1 else int(label[0])
+            test_labels.append(label)
+        
+        print(f"Training samples: {len(train_images)}")
+        print(f"Test samples: {len(test_images)}")
+        
+        if len(test_images) < 2:
+            print("Error: Need at least 2 test images for evaluation!")
+            return None
+        
+        # Use proper evaluation strategy based on test set size
+        if len(test_images) >= 50:
+            # Large test set: use standard evaluation
+            print("Using standard test set evaluation...")
+            return self._evaluate_large_testset(test_images, test_labels, num_trials)
+        else:
+            # Small test set: use cross-dataset evaluation (train vs test)
+            print(f"Small test set ({len(test_images)} images): using cross-dataset evaluation...")
+            return self._evaluate_small_testset(train_images, train_labels, test_images, test_labels, num_trials)
+
+    def _evaluate_large_testset(self, test_images, test_labels, num_trials):
+        """Standard evaluation for larger test sets"""
         genuine_scores = []
         impostor_scores = []
         
-        # Use train dataset for evaluation since it has multiple images per class
-        train_labels = train_dataset.labels.flatten()
-        unique_labels = np.unique(train_labels)
-        print(f"Evaluating with {len(unique_labels)} unique classes from training data")
+        with torch.no_grad():
+            trials = 0
+            max_trials = num_trials
+            
+            while trials < max_trials:
+                idx1 = np.random.randint(0, len(test_images))
+                idx2 = np.random.randint(0, len(test_images))
+                
+                if idx1 == idx2:
+                    continue
+                
+                # Extract features
+                features1 = F.normalize(self.model.get_embedding(test_images[idx1]), p=2, dim=1)
+                features2 = F.normalize(self.model.get_embedding(test_images[idx2]), p=2, dim=1)
+                
+                # Calculate distance
+                distance = F.pairwise_distance(features1, features2).item()
+                
+                # Check if same person (genuine) or different person (impostor)
+                if test_labels[idx1] == test_labels[idx2]:
+                    genuine_scores.append(distance)
+                else:
+                    impostor_scores.append(distance)
+                
+                trials += 1
+                
+                # Balance genuine and impostor scores
+                if len(genuine_scores) >= max_trials // 2 and len(impostor_scores) >= max_trials // 2:
+                    break
+        
+        return self._compute_metrics(genuine_scores, impostor_scores)
+
+    def _evaluate_small_testset(self, train_images, train_labels, test_images, test_labels, num_trials):
+        """Cross-dataset evaluation for small test sets (proper train/test separation)"""
+        genuine_scores = []
+        impostor_scores = []
+        
+        print("Evaluation strategy:")
+        print("- Genuine pairs: Test images vs their corresponding training images (same person)")
+        print("- Impostor pairs: Test images vs training images from different people")
+        
+        # Create label mapping
+        test_labels_set = set(test_labels)
+        train_label_to_indices = {}
+        for i, label in enumerate(train_labels):
+            if label not in train_label_to_indices:
+                train_label_to_indices[label] = []
+            train_label_to_indices[label].append(i)
         
         with torch.no_grad():
-            # Genuine scores (same person) - use training data
-            for _ in range(num_trials // 2):
-                label = np.random.choice(unique_labels)
-                same_class_indices = np.where(train_labels == label)[0]
-                
-                if len(same_class_indices) >= 2:
-                    idx1, idx2 = np.random.choice(same_class_indices, 2, replace=False)
-                    img1, _ = train_dataset[idx1]
-                    img2, _ = train_dataset[idx2]
-                    
-                    img1 = img1.unsqueeze(0).to(device)
-                    img2 = img2.unsqueeze(0).to(device)
-                    
-                    features1, features2 = self.model(img1, img2)
-                    distance = F.pairwise_distance(features1, features2).item()
-                    genuine_scores.append(distance)
+            # Generate genuine pairs (test vs corresponding training samples)
+            genuine_pairs_generated = 0
+            for test_idx, test_label in enumerate(test_labels):
+                if test_label in train_label_to_indices:
+                    # Compare test image with training images of the same person
+                    for train_idx in train_label_to_indices[test_label]:
+                        features1 = F.normalize(self.model.get_embedding(test_images[test_idx]), p=2, dim=1)
+                        features2 = F.normalize(self.model.get_embedding(train_images[train_idx]), p=2, dim=1)
+                        distance = F.pairwise_distance(features1, features2).item()
+                        genuine_scores.append(distance)
+                        genuine_pairs_generated += 1
             
-            # Impostor scores (different person) - use training data
-            for _ in range(num_trials // 2):
-                label1, label2 = np.random.choice(unique_labels, 2, replace=False)
-                idx1 = np.random.choice(np.where(train_labels == label1)[0])
-                idx2 = np.random.choice(np.where(train_labels == label2)[0])
+            # Generate impostor pairs (test vs different training samples)
+            impostor_pairs_needed = min(num_trials // 2, len(genuine_scores))
+            impostor_pairs_generated = 0
+            
+            while impostor_pairs_generated < impostor_pairs_needed:
+                test_idx = np.random.randint(0, len(test_images))
+                test_label = test_labels[test_idx]
                 
-                img1, _ = train_dataset[idx1]
-                img2, _ = train_dataset[idx2]
+                # Find a different label
+                different_labels = [label for label in train_label_to_indices.keys() if label != test_label]
+                if not different_labels:
+                    break
+                    
+                impostor_label = np.random.choice(different_labels)
+                train_idx = np.random.choice(train_label_to_indices[impostor_label])
                 
-                img1 = img1.unsqueeze(0).to(device)
-                img2 = img2.unsqueeze(0).to(device)
-                
-                features1, features2 = self.model(img1, img2)
+                features1 = F.normalize(self.model.get_embedding(test_images[test_idx]), p=2, dim=1)
+                features2 = F.normalize(self.model.get_embedding(train_images[train_idx]), p=2, dim=1)
                 distance = F.pairwise_distance(features1, features2).item()
                 impostor_scores.append(distance)
+                impostor_pairs_generated += 1
         
-        # Calculate metrics
+        print(f"Generated {len(genuine_scores)} genuine pairs and {len(impostor_scores)} impostor pairs")
+        
+        return self._compute_metrics(genuine_scores, impostor_scores)
+
+    def _compute_metrics(self, genuine_scores, impostor_scores):
+        """Compute evaluation metrics from genuine and impostor scores"""
         genuine_scores = np.array(genuine_scores)
         impostor_scores = np.array(impostor_scores)
         
@@ -408,7 +498,7 @@ class FingerprintRecognitionSystem:
             impostor_scores = impostor_scores[~np.isinf(impostor_scores)]
         
         # Check if we have enough scores
-        if len(genuine_scores) < 10 or len(impostor_scores) < 10:
+        if len(genuine_scores) < 5 or len(impostor_scores) < 5:
             print("Error: Not enough scores for evaluation!")
             return None
         
