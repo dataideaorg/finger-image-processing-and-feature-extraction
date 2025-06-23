@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Final Baseline Fingerprint Recognition Model using PyTorch
+Baseline Fingerprint Recognition Model using PyTorch
 FVC2000_DB4_B Dataset Implementation
 
 This version handles the small test dataset limitation by using a proper evaluation strategy.
@@ -23,7 +23,6 @@ import time
 import warnings
 warnings.filterwarnings('ignore')
 
-# Set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
 
@@ -35,7 +34,6 @@ class FingerprintDataset(Dataset):
         self.transform = transform
         self.mode = mode
         
-        # Load numpy data if available
         if os.path.exists(os.path.join(data_path, 'np_data')):
             self.load_numpy_data()
         else:
@@ -71,11 +69,10 @@ class FingerprintDataset(Dataset):
             if filename.endswith('.bmp'):
                 filepath = os.path.join(img_dir, filename)
                 self.image_paths.append(filepath)
-                # Extract label from filename (assuming format: 00000_00.bmp)
                 label = int(filename.split('_')[0])
                 self.labels.append(label)
         
-        self.images = None  # Will load on demand
+        self.images = None
         print(f"Found {len(self.image_paths)} {self.mode} images")
     
     def __len__(self):
@@ -83,15 +80,12 @@ class FingerprintDataset(Dataset):
     
     def __getitem__(self, idx):
         if self.images is not None:
-            # Use preloaded numpy data
             image = self.images[idx]
-            # Squeeze singleton dimensions
             image = np.squeeze(image)
             if len(image.shape) == 3 and image.shape[2] == 3:
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             image = Image.fromarray(image.astype(np.uint8))
         else:
-            # Load image from file
             image = Image.open(self.image_paths[idx]).convert('L')
         
         label = self.labels[idx]
@@ -107,44 +101,34 @@ class FingerprintCNN(nn.Module):
     def __init__(self, embedding_dim=128):
         super(FingerprintCNN, self).__init__()
         
-        # Convolutional layers
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
         self.conv4 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
         
-        # Batch normalization
         self.bn1 = nn.BatchNorm2d(32)
         self.bn2 = nn.BatchNorm2d(64)
         self.bn3 = nn.BatchNorm2d(128)
         self.bn4 = nn.BatchNorm2d(256)
         
-        # Pooling
         self.pool = nn.MaxPool2d(2, 2)
         
-        # Dropout
         self.dropout = nn.Dropout(0.5)
         
-        # Calculate the size after convolutions and pooling
-        # Input: 128x128 -> 64x64 -> 32x32 -> 16x16 -> 8x8
-        # 8 * 8 * 256 = 16384
+        
         self.fc1 = nn.Linear(8 * 8 * 256, 512)
         self.fc2 = nn.Linear(512, embedding_dim)
         
-        # Classification head
-        self.classifier = nn.Linear(embedding_dim, 100)  # Assuming 100 classes
+        self.classifier = nn.Linear(embedding_dim, 100)
     
     def forward(self, x, return_features=False):
-        # Convolutional layers
         x = self.pool(F.relu(self.bn1(self.conv1(x))))
         x = self.pool(F.relu(self.bn2(self.conv2(x))))
         x = self.pool(F.relu(self.bn3(self.conv3(x))))
         x = self.pool(F.relu(self.bn4(self.conv4(x))))
         
-        # Flatten
         x = x.view(x.size(0), -1)
         
-        # Fully connected layers
         x = F.relu(self.fc1(x))
         x = self.dropout(x)
         features = self.fc2(x)
@@ -152,7 +136,6 @@ class FingerprintCNN(nn.Module):
         if return_features:
             return features
         
-        # Classification
         x = self.classifier(features)
         return x
 
@@ -165,11 +148,9 @@ class SiameseNetwork(nn.Module):
         self.embedding_dim = embedding_dim
     
     def forward(self, x1, x2):
-        # Extract features for both inputs
         features1 = self.feature_extractor(x1, return_features=True)
         features2 = self.feature_extractor(x2, return_features=True)
         
-        # Normalize features
         features1 = F.normalize(features1, p=2, dim=1)
         features2 = F.normalize(features2, p=2, dim=1)
         
@@ -187,10 +168,8 @@ class ContrastiveLoss(nn.Module):
         self.margin = margin
     
     def forward(self, features1, features2, labels):
-        # Calculate Euclidean distance
         dist = F.pairwise_distance(features1, features2)
         
-        # Contrastive loss
         loss_same = (1 - labels) * torch.pow(dist, 2)
         loss_diff = labels * torch.pow(torch.clamp(self.margin - dist, min=0.0), 2)
         
@@ -207,7 +186,6 @@ class FingerprintRecognitionSystem:
     
     def create_siamese_pairs(self, dataset, num_pairs=1000):
         """Create positive and negative pairs for training"""
-        # Support for Subset objects
         if hasattr(dataset, 'indices') and hasattr(dataset, 'dataset'):
             indices = np.array(dataset.indices)
             labels = np.array(dataset.dataset.labels)[indices]
@@ -215,7 +193,7 @@ class FingerprintRecognitionSystem:
             labels = np.array(dataset.labels)
             indices = np.arange(len(labels))
 
-        labels = labels.flatten()  # Ensure labels is 1D
+        labels = labels.flatten()
 
         pairs = []
         pair_labels = []
@@ -223,24 +201,21 @@ class FingerprintRecognitionSystem:
         
         print(f"Creating pairs from {len(unique_labels)} unique classes")
 
-        # Create positive pairs (same class)
         for _ in range(num_pairs // 2):
             label = np.random.choice(unique_labels)
             same_class_mask = (labels == label)
             same_class_indices = indices[same_class_mask]
             if len(same_class_indices) >= 2:
                 idx1, idx2 = np.random.choice(same_class_indices, 2, replace=False)
-                # Map back to subset indices
                 pairs.append((np.where(indices == idx1)[0][0], np.where(indices == idx2)[0][0]))
-                pair_labels.append(0)  # 0 for same class
+                pair_labels.append(0)
 
-        # Create negative pairs (different class)
         for _ in range(num_pairs // 2):
             label1, label2 = np.random.choice(unique_labels, 2, replace=False)
             idx1 = np.random.choice(indices[labels == label1])
             idx2 = np.random.choice(indices[labels == label2])
             pairs.append((np.where(indices == idx1)[0][0], np.where(indices == idx2)[0][0]))
-            pair_labels.append(1)  # 1 for different class
+            pair_labels.append(1)
 
         return pairs, pair_labels
     
@@ -248,25 +223,21 @@ class FingerprintRecognitionSystem:
         """Train the Siamese network"""
         print("Training Siamese Network...")
         
-        # Initialize model
         self.model = SiameseNetwork(self.embedding_dim).to(device)
         criterion = ContrastiveLoss(self.margin).to(device)
         optimizer = optim.Adam(self.model.parameters(), lr=lr)
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
         
-        # Create data loaders
         train_pairs, train_labels = self.create_siamese_pairs(train_dataset, num_pairs=2000)
         val_pairs, val_labels = self.create_siamese_pairs(val_dataset, num_pairs=500)
         
         train_losses = []
         val_losses = []
         
-        for epoch in range(epochs):
-            # Training
+        for epoch in range(epochs):     
             self.model.train()
             train_loss = 0.0
             
-            # Shuffle pairs
             indices = np.random.permutation(len(train_pairs))
             
             for i in range(0, len(indices), batch_size):
@@ -274,7 +245,6 @@ class FingerprintRecognitionSystem:
                 batch_pairs = [train_pairs[j] for j in batch_indices]
                 batch_labels = torch.tensor([train_labels[j] for j in batch_indices], dtype=torch.float32).to(device)
                 
-                # Get images
                 img1_batch = []
                 img2_batch = []
                 
@@ -287,18 +257,15 @@ class FingerprintRecognitionSystem:
                 img1_batch = torch.stack(img1_batch).to(device)
                 img2_batch = torch.stack(img2_batch).to(device)
                 
-                # Forward pass
                 features1, features2 = self.model(img1_batch, img2_batch)
                 loss = criterion(features1, features2, batch_labels)
                 
-                # Backward pass
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
                 
                 train_loss += loss.item()
             
-            # Validation
             self.model.eval()
             val_loss = 0.0
             
@@ -335,7 +302,6 @@ class FingerprintRecognitionSystem:
             if (epoch + 1) % 10 == 0:
                 print(f"Epoch [{epoch+1}/{epochs}], Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
         
-        # Plot training curves
         self.plot_training_curves(train_losses, val_losses)
         
         return train_losses, val_losses
@@ -355,7 +321,6 @@ class FingerprintRecognitionSystem:
         for i in range(len(train_dataset)):
             image, label = train_dataset[i]
             train_images.append(image.unsqueeze(0).to(device))
-            # Convert numpy array to scalar if needed
             if isinstance(label, np.ndarray):
                 label = label.item() if label.size == 1 else int(label[0])
             train_labels.append(label)
@@ -363,7 +328,6 @@ class FingerprintRecognitionSystem:
         for i in range(len(test_dataset)):
             image, label = test_dataset[i]
             test_images.append(image.unsqueeze(0).to(device))
-            # Convert numpy array to scalar if needed
             if isinstance(label, np.ndarray):
                 label = label.item() if label.size == 1 else int(label[0])
             test_labels.append(label)
@@ -375,13 +339,10 @@ class FingerprintRecognitionSystem:
             print("Error: Need at least 2 test images for evaluation!")
             return None
         
-        # Use proper evaluation strategy based on test set size
         if len(test_images) >= 50:
-            # Large test set: use standard evaluation
             print("Using standard test set evaluation...")
             return self._evaluate_large_testset(test_images, test_labels, num_trials)
         else:
-            # Small test set: use cross-dataset evaluation (train vs test)
             print(f"Small test set ({len(test_images)} images): using cross-dataset evaluation...")
             return self._evaluate_small_testset(train_images, train_labels, test_images, test_labels, num_trials)
 
@@ -401,14 +362,11 @@ class FingerprintRecognitionSystem:
                 if idx1 == idx2:
                     continue
                 
-                # Extract features
                 features1 = F.normalize(self.model.get_embedding(test_images[idx1]), p=2, dim=1)
                 features2 = F.normalize(self.model.get_embedding(test_images[idx2]), p=2, dim=1)
                 
-                # Calculate distance
                 distance = F.pairwise_distance(features1, features2).item()
                 
-                # Check if same person (genuine) or different person (impostor)
                 if test_labels[idx1] == test_labels[idx2]:
                     genuine_scores.append(distance)
                 else:
@@ -416,7 +374,6 @@ class FingerprintRecognitionSystem:
                 
                 trials += 1
                 
-                # Balance genuine and impostor scores
                 if len(genuine_scores) >= max_trials // 2 and len(impostor_scores) >= max_trials // 2:
                     break
         
@@ -431,7 +388,6 @@ class FingerprintRecognitionSystem:
         print("- Genuine pairs: Test images vs their corresponding training images (same person)")
         print("- Impostor pairs: Test images vs training images from different people")
         
-        # Create label mapping
         test_labels_set = set(test_labels)
         train_label_to_indices = {}
         for i, label in enumerate(train_labels):
@@ -440,11 +396,9 @@ class FingerprintRecognitionSystem:
             train_label_to_indices[label].append(i)
         
         with torch.no_grad():
-            # Generate genuine pairs (test vs corresponding training samples)
             genuine_pairs_generated = 0
             for test_idx, test_label in enumerate(test_labels):
                 if test_label in train_label_to_indices:
-                    # Compare test image with training images of the same person
                     for train_idx in train_label_to_indices[test_label]:
                         features1 = F.normalize(self.model.get_embedding(test_images[test_idx]), p=2, dim=1)
                         features2 = F.normalize(self.model.get_embedding(train_images[train_idx]), p=2, dim=1)
@@ -452,7 +406,6 @@ class FingerprintRecognitionSystem:
                         genuine_scores.append(distance)
                         genuine_pairs_generated += 1
             
-            # Generate impostor pairs (test vs different training samples)
             impostor_pairs_needed = min(num_trials // 2, len(genuine_scores))
             impostor_pairs_generated = 0
             
@@ -460,7 +413,6 @@ class FingerprintRecognitionSystem:
                 test_idx = np.random.randint(0, len(test_images))
                 test_label = test_labels[test_idx]
                 
-                # Find a different label
                 different_labels = [label for label in train_label_to_indices.keys() if label != test_label]
                 if not different_labels:
                     break
@@ -486,7 +438,6 @@ class FingerprintRecognitionSystem:
         print(f"Genuine scores: {len(genuine_scores)}, mean: {np.mean(genuine_scores):.4f}, std: {np.std(genuine_scores):.4f}")
         print(f"Impostor scores: {len(impostor_scores)}, mean: {np.mean(impostor_scores):.4f}, std: {np.std(impostor_scores):.4f}")
         
-        # Check for NaN or infinite values
         if np.any(np.isnan(genuine_scores)) or np.any(np.isnan(impostor_scores)):
             print("Warning: NaN values detected in scores!")
             genuine_scores = genuine_scores[~np.isnan(genuine_scores)]
@@ -497,16 +448,13 @@ class FingerprintRecognitionSystem:
             genuine_scores = genuine_scores[~np.isinf(genuine_scores)]
             impostor_scores = impostor_scores[~np.isinf(impostor_scores)]
         
-        # Check if we have enough scores
         if len(genuine_scores) < 5 or len(impostor_scores) < 5:
             print("Error: Not enough scores for evaluation!")
             return None
         
-        # ROC curve
         all_scores = np.concatenate([genuine_scores, impostor_scores])
         all_labels = np.concatenate([np.zeros(len(genuine_scores)), np.ones(len(impostor_scores))])
         
-        # Check if scores are all identical
         if np.std(all_scores) == 0:
             print("Error: All scores are identical! Cannot compute ROC.")
             return None
@@ -514,15 +462,13 @@ class FingerprintRecognitionSystem:
         fpr, tpr, thresholds = roc_curve(all_labels, all_scores)
         roc_auc = auc(fpr, tpr)
         
-        # EER calculation
         fnr = 1 - tpr
         eer_idx = np.argmin(np.abs(fpr - fnr))
         eer_threshold = thresholds[eer_idx]
         eer = fpr[eer_idx]
-        
-        # FAR and FRR at different thresholds
-        threshold_0_1 = np.percentile(impostor_scores, 10)  # 10% FAR
-        threshold_0_01 = np.percentile(impostor_scores, 1)  # 1% FAR
+
+        threshold_0_1 = np.percentile(impostor_scores, 10)
+        threshold_0_01 = np.percentile(impostor_scores, 1)
         
         far_0_1 = np.mean(impostor_scores <= threshold_0_1)
         frr_0_1 = np.mean(genuine_scores > threshold_0_1)
@@ -530,7 +476,6 @@ class FingerprintRecognitionSystem:
         far_0_01 = np.mean(impostor_scores <= threshold_0_01)
         frr_0_01 = np.mean(genuine_scores > threshold_0_01)
         
-        # Print results
         print(f"\n=== Performance Results ===")
         print(f"ROC AUC: {roc_auc:.4f}")
         print(f"Equal Error Rate (EER): {eer:.4f}")
@@ -542,7 +487,6 @@ class FingerprintRecognitionSystem:
         print(f"  FAR: {far_0_01:.4f}")
         print(f"  FRR: {frr_0_01:.4f}")
         
-        # Plot ROC curve
         self.plot_roc_curve(fpr, tpr, roc_auc, genuine_scores, impostor_scores)
         
         return {
@@ -574,7 +518,6 @@ class FingerprintRecognitionSystem:
         """Plot ROC curve and score distributions"""
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
         
-        # ROC curve
         ax1.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (AUC = {roc_auc:.3f})')
         ax1.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
         ax1.set_xlim([0.0, 1.0])
@@ -585,7 +528,6 @@ class FingerprintRecognitionSystem:
         ax1.legend(loc="lower right")
         ax1.grid(True)
         
-        # Score distributions
         ax2.hist(genuine_scores, bins=50, alpha=0.7, label='Genuine Scores', color='green')
         ax2.hist(impostor_scores, bins=50, alpha=0.7, label='Impostor Scores', color='red')
         ax2.set_xlabel('Distance Score')
@@ -623,25 +565,21 @@ def main():
     print("Framework: PyTorch")
     print("=" * 50)
     
-    # Data transforms
     transform = transforms.Compose([
         transforms.Resize((128, 128)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5], std=[0.5])
     ])
     
-    # Load datasets
     print("Loading datasets...")
     train_dataset = FingerprintDataset('dataset', transform=transform, mode='train')
     test_dataset = FingerprintDataset('dataset', transform=transform, mode='real')
     
-    # Split train dataset into train and validation
     train_indices, val_indices = train_test_split(
         range(len(train_dataset)), test_size=0.2, random_state=42, 
         stratify=train_dataset.labels.flatten()
     )
     
-    # Create train and validation datasets
     train_subset = torch.utils.data.Subset(train_dataset, train_indices)
     val_subset = torch.utils.data.Subset(train_dataset, val_indices)
     
@@ -649,10 +587,8 @@ def main():
     print(f"Validation samples: {len(val_subset)}")
     print(f"Test samples: {len(test_dataset)}")
     
-    # Initialize system
     system = FingerprintRecognitionSystem(embedding_dim=128, margin=1.0)
     
-    # Train the model
     print("\nStarting training...")
     start_time = time.time()
     train_losses, val_losses = system.train_siamese_network(
@@ -661,14 +597,11 @@ def main():
     training_time = time.time() - start_time
     print(f"Training completed in {training_time:.2f} seconds")
     
-    # Evaluate performance using training data for evaluation
     print("\nEvaluating performance...")
     results = system.evaluate_performance(train_dataset, test_dataset, num_trials=1000)
     
-    # Save model
     system.save_model('fingerprint_final_model.pth')
     
-    # Print summary
     print("\n=== Summary ===")
     print(f"Training time: {training_time:.2f} seconds")
     if results:
