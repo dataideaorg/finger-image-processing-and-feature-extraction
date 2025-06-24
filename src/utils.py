@@ -74,7 +74,7 @@ def plot_training_curves(train_losses, val_losses):
     plt.title('Training and Validation Loss')
     plt.legend()
     plt.grid(True)
-    plt.savefig(f'{LOGS_DIR}/training_curves.png', dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(IMAGES_DIR, 'training_curves.png'), dpi=300, bbox_inches='tight')
     plt.show()
 
 
@@ -103,7 +103,7 @@ def plot_roc_curve(fpr, tpr, roc_auc, genuine_scores, impostor_scores):
     ax2.grid(True)
     
     plt.tight_layout()
-    plt.savefig(f'{IMAGES_DIR}/performance_analysis.png', dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(IMAGES_DIR, 'performance_analysis.png'), dpi=300, bbox_inches='tight')
     plt.show()
 
 
