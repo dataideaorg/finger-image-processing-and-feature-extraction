@@ -1,0 +1,21 @@
+2025-06-24 11:47:44,014 - INFO - Using device: cpu
+2025-06-24 11:47:44,014 - INFO - === Final Fingerprint Recognition Baseline Model ===
+2025-06-24 11:47:44,014 - INFO - Dataset: FVC2000_DB4_B
+2025-06-24 11:47:44,014 - INFO - Framework: PyTorch
+2025-06-24 11:47:44,014 - INFO - ==================================================
+2025-06-24 11:47:44,014 - INFO - Loading datasets...
+2025-06-24 11:47:44,021 - INFO - Train samples: 640
+2025-06-24 11:47:44,021 - INFO - Validation samples: 160
+2025-06-24 11:47:44,021 - INFO - Test samples: 10
+2025-06-24 11:47:44,088 - INFO - 
+Starting training...
+2025-06-24 12:38:07,367 - INFO - Training completed in 3023.28 seconds
+2025-06-24 12:38:07,368 - INFO - 
+Evaluating performance...
+2025-06-24 12:38:28,777 - INFO - 
+=== Summary ===
+2025-06-24 12:38:28,777 - INFO - Training time: 3023.28 seconds
+2025-06-24 12:38:28,777 - INFO - ROC AUC: 0.7959
+2025-06-24 12:38:28,777 - INFO - EER: 0.2800
+2025-06-24 12:38:28,777 - INFO - Model saved as: /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/models/fingerprint_model.pth
+2025-06-24 12:38:28,777 - INFO - Plots saved as: /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/images/training_curves.png, /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/images/performance_analysis.png
