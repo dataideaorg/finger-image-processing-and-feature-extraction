@@ -1,10 +1,15 @@
 # %%
+import os
 import numpy as np
 import torch
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, auc
 from typing import Dict, Tuple, Optional
+
+OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
+IMAGES_DIR = os.path.join(OUTPUT_DIR, "images")
+LOGS_DIR = os.path.join(OUTPUT_DIR, "logs")
 
 # %%
 def evaluate_performance(model: torch.nn.Module, train_dataset, test_dataset, 
@@ -175,7 +180,7 @@ def plot_performance_analysis(fpr: np.ndarray, tpr: np.ndarray, roc_auc: float,
     ax2.grid(True)
     
     plt.tight_layout()
-    plt.savefig('performance_analysis.png', dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(IMAGES_DIR, 'performance_analysis.png'), dpi=300, bbox_inches='tight')
     plt.show()
 
 # %%

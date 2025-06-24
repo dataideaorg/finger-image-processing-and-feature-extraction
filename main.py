@@ -11,10 +11,14 @@ from src.recognition_system import FingerprintRecognitionSystem
 
 warnings.filterwarnings('ignore')
 
-ROOT_FOLDER = os.path.dirname(__file__)
-OUTPUT_FOLDER = os.path.join(ROOT_FOLDER, 'output')
-LOGS_FOLDER = os.path.join(OUTPUT_FOLDER, 'logs')
-MODELS_FOLDER = os.path.join(OUTPUT_FOLDER, 'models')
+OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output")
+IMAGES_DIR = os.path.join(OUTPUT_DIR, "images")
+MODELS_DIR = os.path.join(OUTPUT_DIR, "models")
+LOGS_DIR = os.path.join(OUTPUT_DIR, "logs")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+os.makedirs(IMAGES_DIR, exist_ok=True)
+os.makedirs(MODELS_DIR, exist_ok=True)
+os.makedirs(LOGS_DIR, exist_ok=True)
 
 # %%
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -63,7 +67,7 @@ def main():
     print("\nEvaluating performance...")
     results = system.evaluate(train_dataset, test_dataset, num_trials=1000)
     
-    system.save('fingerprint_final_model.pth')
+    system.save(os.path.join(MODELS_DIR, 'fingerprint_model.pth'))
     
     print("\n=== Summary ===")
     print(f"Training time: {training_time:.2f} seconds")
@@ -73,8 +77,8 @@ def main():
         print(f"Model performance: {'Good' if results['roc_auc'] > 0.8 else 'Needs improvement'}")
     else:
         print("Evaluation failed - check the output above for issues")
-    print(f"Model saved as: fingerprint_final_model.pth")
-    print("Plots saved as: training_curves.png, performance_analysis.png")
+    print(f"Model saved as: {os.path.join(MODELS_DIR, 'fingerprint_model.pth')}")
+    print(f"Plots saved as: {os.path.join(IMAGES_DIR, 'training_curves.png')}, {os.path.join(IMAGES_DIR, 'performance_analysis.png')}")
 
 
 if __name__ == "__main__":

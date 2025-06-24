@@ -1,9 +1,14 @@
 # %%
+import os
 import torch
 from .models import SiameseNetwork, ContrastiveLoss
 from .training import train_siamese_network
 from .evaluation import evaluate_performance
 from .utils import save_model, load_model
+
+OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
+LOGS_DIR = os.path.join(OUTPUT_DIR, "logs")
+
 
 # %%
 class FingerprintRecognitionSystem:

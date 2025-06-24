@@ -1,7 +1,4 @@
-"""
-Dataset module for fingerprint image loading and preprocessing.
-"""
-
+# %%
 import os
 import numpy as np
 import cv2
@@ -9,6 +6,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 
 
+# %%
 class FingerprintDataset(Dataset):
     """Custom Dataset for fingerprint images"""
     
@@ -23,7 +21,6 @@ class FingerprintDataset(Dataset):
             self.load_image_data()
     
     def load_numpy_data(self):
-        """Load preprocessed numpy data"""
         np_path = os.path.join(self.data_path, 'np_data')
         
         if self.mode == 'train':
@@ -39,7 +36,6 @@ class FingerprintDataset(Dataset):
         print(f"Unique labels: {np.unique(self.labels.flatten())}")
     
     def load_image_data(self):
-        """Load raw image data"""
         if self.mode == 'train':
             img_dir = os.path.join(self.data_path, 'train_data')
         else:
@@ -77,3 +73,4 @@ class FingerprintDataset(Dataset):
             image = self.transform(image)
         
         return image, label 
+# %%

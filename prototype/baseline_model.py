@@ -23,6 +23,9 @@ warnings.filterwarnings('ignore')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
 
+OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
+MODELS_DIR = os.path.join(OUTPUT_DIR, "models")
+
 class FingerprintDataset(Dataset):
     """Custom Dataset for fingerprint images"""
     
@@ -597,7 +600,7 @@ def main():
     print("\nEvaluating performance...")
     results = system.evaluate_performance(train_dataset, test_dataset, num_trials=1000)
     
-    system.save_model('fingerprint_final_model.pth')
+    system.save_model(os.path.join(MODELS_DIR, 'fingerprint_model.pth'))
     
     print("\n=== Summary ===")
     print(f"Training time: {training_time:.2f} seconds")
@@ -607,7 +610,7 @@ def main():
         print(f"Model performance: {'Good' if results['roc_auc'] > 0.8 else 'Needs improvement'}")
     else:
         print("Evaluation failed - check the output above for issues")
-    print(f"Model saved as: fingerprint_final_model.pth")
+    print(f"Model saved as: {os.path.join(MODELS_DIR, 'fingerprint_model.pth')}")
     print("Plots saved as: training_curves.png, performance_analysis.png")
 
 if __name__ == "__main__":

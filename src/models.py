@@ -1,7 +1,12 @@
 # %%
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+
+OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
+LOGS_DIR = os.path.join(OUTPUT_DIR, "logs")
 
 # %%
 class FingerprintCNN(nn.Module):
@@ -85,3 +90,4 @@ class ContrastiveLoss(nn.Module):
         
         loss = torch.mean(loss_same + loss_diff)
         return loss 
+# %%

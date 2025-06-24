@@ -4,6 +4,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 
+OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
+IMAGES_DIR = os.path.join(OUTPUT_DIR, "images")
+LOGS_DIR = os.path.join(OUTPUT_DIR, "logs")
+
+
 
 # %%
 def create_siamese_pairs(dataset, num_pairs=1000):
@@ -69,7 +74,7 @@ def plot_training_curves(train_losses, val_losses):
     plt.title('Training and Validation Loss')
     plt.legend()
     plt.grid(True)
-    plt.savefig(f'{OUTPUT_FOLDER}/training_curves.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{LOGS_DIR}/training_curves.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
@@ -98,7 +103,7 @@ def plot_roc_curve(fpr, tpr, roc_auc, genuine_scores, impostor_scores):
     ax2.grid(True)
     
     plt.tight_layout()
-    plt.savefig(f'{OUTPUT_FOLDER}/performance_analysis.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{IMAGES_DIR}/performance_analysis.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 

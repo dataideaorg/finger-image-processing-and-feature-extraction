@@ -1,12 +1,16 @@
 # %%
+import os
 import torch
 import torch.optim as optim
 from .utils import create_siamese_pairs, plot_training_curves
 
+OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")    
+LOGS_DIR = os.path.join(OUTPUT_DIR, "logs") 
+os.makedirs(LOGS_DIR, exist_ok=True)
+
 # %%
 def train_siamese_network(model, criterion, train_dataset, val_dataset, device, 
                          epochs=50, batch_size=32, lr=0.001):
-    """Train the Siamese network"""
     print("=== Training Siamese Network ===")
     
     print("Creating training pairs...")
