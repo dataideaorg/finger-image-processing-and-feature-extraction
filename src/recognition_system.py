@@ -1,14 +1,11 @@
-"""
-Main recognition system class that orchestrates all components.
-"""
-
+# %%
 import torch
 from .models import SiameseNetwork, ContrastiveLoss
 from .training import train_siamese_network
 from .evaluation import evaluate_performance
 from .utils import save_model, load_model
 
-
+# %%
 class FingerprintRecognitionSystem:
     """Main system for fingerprint recognition training and evaluation"""
     

@@ -1,11 +1,11 @@
-"""
-Utility functions for fingerprint recognition system.
-"""
-
+# %%
+import os
 import numpy as np
 import matplotlib.pyplot as plt
+import torch
 
 
+# %%
 def create_siamese_pairs(dataset, num_pairs=1000):
     """Create pairs for Siamese network training"""
     pairs = []
@@ -69,7 +69,7 @@ def plot_training_curves(train_losses, val_losses):
     plt.title('Training and Validation Loss')
     plt.legend()
     plt.grid(True)
-    plt.savefig('training_curves.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{OUTPUT_FOLDER}/training_curves.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
@@ -98,13 +98,12 @@ def plot_roc_curve(fpr, tpr, roc_auc, genuine_scores, impostor_scores):
     ax2.grid(True)
     
     plt.tight_layout()
-    plt.savefig('performance_analysis.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{OUTPUT_FOLDER}/performance_analysis.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
 def save_model(model, embedding_dim, margin, filepath):
     """Save the trained model"""
-    import torch
     torch.save({
         'model_state_dict': model.state_dict(),
         'embedding_dim': embedding_dim,
@@ -115,7 +114,6 @@ def save_model(model, embedding_dim, margin, filepath):
 
 def load_model(filepath, device):
     """Load a trained model"""
-    import torch
     from .models import SiameseNetwork
     
     checkpoint = torch.load(filepath, map_location=device)

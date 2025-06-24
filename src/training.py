@@ -1,12 +1,9 @@
-"""
-Training module for fingerprint recognition system.
-"""
-
+# %%
 import torch
 import torch.optim as optim
 from .utils import create_siamese_pairs, plot_training_curves
 
-
+# %%
 def train_siamese_network(model, criterion, train_dataset, val_dataset, device, 
                          epochs=50, batch_size=32, lr=0.001):
     """Train the Siamese network"""

@@ -1,24 +1,22 @@
-#!/usr/bin/env python3
-"""
-Final Baseline Fingerprint Recognition Model using PyTorch
-FVC2000_DB4_B Dataset Implementation
-
-This version uses modularized components for better code organization.
-"""
-
+# %%
 import os
 import time
 import warnings
 import torch
 from torchvision import transforms
 from sklearn.model_selection import train_test_split
-
+# %%
 from src.dataset import FingerprintDataset
 from src.recognition_system import FingerprintRecognitionSystem
 
 warnings.filterwarnings('ignore')
 
-# Set device
+ROOT_FOLDER = os.path.dirname(__file__)
+OUTPUT_FOLDER = os.path.join(ROOT_FOLDER, 'output')
+LOGS_FOLDER = os.path.join(OUTPUT_FOLDER, 'logs')
+MODELS_FOLDER = os.path.join(OUTPUT_FOLDER, 'models')
+
+# %%
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
 
@@ -30,25 +28,21 @@ def main():
     print("Framework: PyTorch")
     print("=" * 50)
     
-    # Data transforms
     transform = transforms.Compose([
         transforms.Resize((128, 128)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5], std=[0.5])
     ])
     
-    # Load datasets
     print("Loading datasets...")
     train_dataset = FingerprintDataset('dataset', transform=transform, mode='train')
     test_dataset = FingerprintDataset('dataset', transform=transform, mode='real')
     
-    # Split train dataset into train and validation
     train_indices, val_indices = train_test_split(
         range(len(train_dataset)), test_size=0.2, random_state=42, 
         stratify=train_dataset.labels.flatten()
     )
     
-    # Create train and validation datasets
     train_subset = torch.utils.data.Subset(train_dataset, train_indices)
     val_subset = torch.utils.data.Subset(train_dataset, val_indices)
     
@@ -56,10 +50,8 @@ def main():
     print(f"Validation samples: {len(val_subset)}")
     print(f"Test samples: {len(test_dataset)}")
     
-    # Initialize system
     system = FingerprintRecognitionSystem(embedding_dim=128, margin=1.0, device=device)
     
-    # Train the model
     print("\nStarting training...")
     start_time = time.time()
     train_losses, val_losses = system.train(
@@ -68,14 +60,11 @@ def main():
     training_time = time.time() - start_time
     print(f"Training completed in {training_time:.2f} seconds")
     
-    # Evaluate performance using training data for evaluation
     print("\nEvaluating performance...")
     results = system.evaluate(train_dataset, test_dataset, num_trials=1000)
     
-    # Save model
     system.save('fingerprint_final_model.pth')
     
-    # Print summary
     print("\n=== Summary ===")
     print(f"Training time: {training_time:.2f} seconds")
     if results:

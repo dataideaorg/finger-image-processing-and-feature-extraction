@@ -1,9 +1,6 @@
-#!/usr/bin/env python3
 """
 Baseline Fingerprint Recognition Model using PyTorch
 FVC2000_DB4_B Dataset Implementation
-
-This version handles the small test dataset limitation by using a proper evaluation strategy.
 """
 
 import os
