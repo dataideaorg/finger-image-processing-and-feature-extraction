@@ -1,9 +1,6 @@
 .venv/
-dataset/
 *.ipynb
 .env
-*.pth
-*.png
 *.pyc
 *.pyo
 *.pyd
