@@ -53,19 +53,26 @@ def main():
     
     logger.info("Loading datasets...")
     train_dataset = FingerprintDataset('dataset', transform=transform, mode='train')
-    test_dataset = FingerprintDataset('dataset', transform=transform, mode='real')
+    test_dataset = FingerprintDataset('dataset', transform=transform, mode='test')
     
+    # Print dataset statistics
+    train_dataset.print_stats()
+    test_dataset.print_stats()
+    
+    # Create validation split from training data (20% of training data)
     train_indices, val_indices = train_test_split(
         range(len(train_dataset)), test_size=0.2, random_state=42, 
-        stratify=train_dataset.labels.flatten()
+        stratify=train_dataset.labels
     )
     
     train_subset = torch.utils.data.Subset(train_dataset, train_indices)
     val_subset = torch.utils.data.Subset(train_dataset, val_indices)
     
-    logger.info(f"Train samples: {len(train_subset)}")
-    logger.info(f"Validation samples: {len(val_subset)}")
-    logger.info(f"Test samples: {len(test_dataset)}")
+    logger.info(f"Final split sizes:")
+    logger.info(f"  Train samples: {len(train_subset)}")
+    logger.info(f"  Validation samples: {len(val_subset)}")
+    logger.info(f"  Test samples: {len(test_dataset)}")
+    logger.info(f"  Total samples: {len(train_subset) + len(val_subset) + len(test_dataset)}")
     
     system = FingerprintRecognitionSystem(embedding_dim=128, margin=1.0, device=device)
     

@@ -19,3 +19,32 @@ Evaluating performance...
 2025-06-24 12:38:28,777 - INFO - EER: 0.2800
 2025-06-24 12:38:28,777 - INFO - Model saved as: /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/models/fingerprint_model.pth
 2025-06-24 12:38:28,777 - INFO - Plots saved as: /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/images/training_curves.png, /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/images/performance_analysis.png
+2025-06-25 15:38:56,952 - INFO - Using device: cpu
+2025-06-25 15:38:56,952 - INFO - === Final Fingerprint Recognition Baseline Model ===
+2025-06-25 15:38:56,952 - INFO - Dataset: FVC2000_DB4_B
+2025-06-25 15:38:56,952 - INFO - Framework: PyTorch
+2025-06-25 15:38:56,952 - INFO - ==================================================
+2025-06-25 15:38:56,952 - INFO - Loading datasets...
+2025-06-25 15:41:27,088 - INFO - Using device: cpu
+2025-06-25 15:41:27,089 - INFO - === Final Fingerprint Recognition Baseline Model ===
+2025-06-25 15:41:27,089 - INFO - Dataset: FVC2000_DB4_B
+2025-06-25 15:41:27,089 - INFO - Framework: PyTorch
+2025-06-25 15:41:27,089 - INFO - ==================================================
+2025-06-25 15:41:27,089 - INFO - Loading datasets...
+2025-06-25 15:41:27,098 - INFO - Final split sizes:
+2025-06-25 15:41:27,098 - INFO -   Train samples: 640
+2025-06-25 15:41:27,098 - INFO -   Validation samples: 160
+2025-06-25 15:41:27,098 - INFO -   Test samples: 10
+2025-06-25 15:41:27,098 - INFO -   Total samples: 810
+2025-06-25 15:41:27,146 - INFO - 
+Starting training...
+2025-06-25 16:22:04,738 - INFO - Training completed in 2437.59 seconds
+2025-06-25 16:22:04,738 - INFO - 
+Evaluating performance...
+2025-06-25 16:25:15,714 - INFO - 
+=== Summary ===
+2025-06-25 16:25:15,714 - INFO - Training time: 2437.59 seconds
+2025-06-25 16:25:15,714 - INFO - ROC AUC: 0.6959
+2025-06-25 16:25:15,714 - INFO - EER: 0.3880
+2025-06-25 16:25:15,714 - INFO - Model saved as: /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/models/fingerprint_model.pth
+2025-06-25 16:25:15,715 - INFO - Plots saved as: /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/images/training_curves.png, /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/images/performance_analysis.png
