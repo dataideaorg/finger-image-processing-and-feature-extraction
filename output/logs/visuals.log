@@ -16,3 +16,34 @@
 2025-06-26 09:54:04,586 - INFO - Generated 2 genuine pairs: [(0, 1, 0), (80, 81, 1)]
 2025-06-26 09:54:04,586 - INFO - Generated 2 impostor pairs: [(0, 80, '0 vs 1'), (80, 160, '1 vs 2')]
 2025-06-26 09:54:05,542 - INFO - Sample pairs visualization saved to: /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/images/sample_pairs.png
+2025-06-27 15:49:54,463 - INFO - Starting visual documentation generation...
+2025-06-27 15:49:54,464 - INFO - Creating system flowchart...
+2025-06-27 15:49:54,652 - INFO - Chromium init'ed with kwargs {}
+2025-06-27 15:49:54,654 - ERROR - Error generating visualizations: 
+
+Kaleido requires Google Chrome to be installed.
+
+Either download and install Chrome yourself following Google's instructions for your operating system,
+or install it from your terminal by running:
+
+    $ plotly_get_chrome
+
+
+2025-06-27 15:52:43,397 - INFO - System flowchart saved to: /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/images/system_flowchart.png
+2025-06-27 15:52:43,762 - INFO - CNN architecture diagram saved to: /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/images/cnn_architecture.png
+2025-06-27 15:52:44,317 - INFO - Training process diagram saved to: /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/images/training_process.png
+2025-06-27 15:52:44,329 - INFO - Using dataset with 800 images for visualization
+2025-06-27 15:52:44,416 - INFO - Loaded trained model for similarity scoring
+2025-06-27 15:52:44,464 - INFO - Found 10 unique labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+2025-06-27 15:52:44,856 - INFO - Generated 2 genuine pairs: [(0, 1, 0), (80, 81, 1)]
+2025-06-27 15:52:44,857 - INFO - Generated 2 impostor pairs: [(0, 80, '0 vs 1'), (80, 160, '1 vs 2')]
+2025-06-27 15:52:45,780 - INFO - Sample pairs visualization saved to: /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/images/sample_pairs.png
+2025-06-27 15:54:32,034 - INFO - System flowchart saved to: /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/images/system_flowchart.png
+2025-06-27 15:54:32,415 - INFO - CNN architecture diagram saved to: /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/images/cnn_architecture.png
+2025-06-27 15:54:33,052 - INFO - Training process diagram saved to: /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/images/training_process.png
+2025-06-27 15:54:33,058 - INFO - Using dataset with 800 images for visualization
+2025-06-27 15:54:33,125 - INFO - Loaded trained model for similarity scoring
+2025-06-27 15:54:33,158 - INFO - Found 10 unique labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+2025-06-27 15:54:33,553 - INFO - Generated 2 genuine pairs: [(0, 1, 0), (80, 81, 1)]
+2025-06-27 15:54:33,553 - INFO - Generated 2 impostor pairs: [(0, 80, '0 vs 1'), (80, 160, '1 vs 2')]
+2025-06-27 15:54:34,492 - INFO - Sample pairs visualization saved to: /home/jumashafara/Work/dataidea/others/finger-image-processing-and-feature-extraction/output/images/sample_pairs.png
